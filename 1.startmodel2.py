@@ -157,7 +157,7 @@ for t in range(len(timeSteps)):
     InvestmentFlow[t]             = max(0,
                                         InvestmentExogenous[t]) # The max function is used to avoid negative values. 
     # 2.0
-    InvestmentFlow[t]             = DelayFixed(max(t,int(RequiredCSNetInvestment[t] + DepreciationFlow[t])),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t], DelayPeriod)
+    InvestmentFlow[t]             = DelayFixed(t,max(0,(RequiredCSNetInvestment[t] + DepreciationFlow[t])),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t])
 
     # 3.0 etc. 
     
