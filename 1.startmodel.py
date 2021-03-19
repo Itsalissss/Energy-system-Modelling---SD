@@ -33,7 +33,7 @@ def Ramp(current,growth,start,end):
 
 delaylist = np.zeros(len(timeSteps))
 def DelayFixed(current,inp,delayTime,initialValue): 
-    """Write a description of this function here for personal documentation."""
+    """Returns 0 until the startTime and then slopes upward until endTime and then holds constant."""
     delaylist[current] = inp
     if current*lengthTimeStep<=delayTime:
         return initialValue
