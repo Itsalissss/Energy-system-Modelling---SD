@@ -157,7 +157,7 @@ for t in range(len(timeSteps)):
     InvestmentFlow[t]             = max(0,
                                         InvestmentExogenous[t]) # The max function is used to avoid negative values. 
     # 2.0
-    InvestmentFlow[t]             = DelayFixed(max(0,RequiredCSNetInvestment[t] + DepreciationFlow[t]),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t])
+    InvestmentFlow[t]             = DelayFixed(max(t,int(RequiredCSNetInvestment[t] + DepreciationFlow[t])),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t], DelayPeriod)
 
     # 3.0 etc. 
     
@@ -165,9 +165,9 @@ for t in range(len(timeSteps)):
 
 
 #%% Generate output
-data = [CapitalStock,InvestmentFlow,DepreciationFlow]
+data = [CapitalStock,InvestmentFlow,DepreciationFlow,DesiredProductOutput,ProductOutput,RequiredCSNetInvestment]
 data = np.transpose(data)
-label = ['Capital Stock','InvestFlow','DepreciationFlow']
+label = ['Capital Stock','InvestFlow','DepreciationFlow', 'DesiredProductOutput','ProductOutput','RequiredCSNetInvestment']
 out = pd.DataFrame(data,index=timeSteps,columns=label)
 
 
