@@ -92,6 +92,9 @@ CapitalStock[0]                     = 100 # for stock you will need to define th
 # 1.0 Initial
 InvestmentExogenous                 = np.zeros(len(timeSteps))*np.nan
 # 2.0 
+DesiredProductOutput                = np.zeros(len(timeSteps))*np.nan
+ProductOutput                       = np.zeros(len(timeSteps))*np.nan
+RequiredCSNetInvestment             = np.zeros(len(timeSteps))*np.nan
 # 3.1
 # 3.2
 # 3.3 etc.
@@ -103,6 +106,7 @@ InvestmentExogenous                 = np.zeros(len(timeSteps))*np.nan
 InvestmentFlow                      = np.zeros(len(timeSteps))*np.nan
 DepreciationFlow                    = np.zeros(len(timeSteps))*np.nan
 # 2.0 
+InvestmentFlow                      = np.zeros(len(timeSteps))*np.nan
 # 3.1
 # 3.2
 # 3.3 etc.
@@ -115,6 +119,9 @@ DepreciationCS                      = 0.1
 PulseSize                           = 5
 PulseInterval                       = 5
 # 2.0 
+LinearDemandGrowthforP              = 0
+OKR                                 = 1
+DelayPeriod                         = 0.25
 # 3.1
 # 3.2
 # 3.3 etc.
@@ -138,6 +145,9 @@ for t in range(len(timeSteps)):
     # 1.0 Initial
     InvestmentExogenous[t]        = PulseSize*PulseTrain(t,10,PulseInterval,300)
     # 2.0 
+    DesiredProductOutput[t]       = 105 + Ramp(t, LinearDemandGrowthforP, 10, 300)
+    ProductOutput[t]              = CapitalStock[t]*OKR 
+    RequiredCSNetInvestment[t]       = (DesiredProductOutput[t]-ProductOutput[t])/OKR
     # 3.0 etc. 
     
     
@@ -147,6 +157,8 @@ for t in range(len(timeSteps)):
     InvestmentFlow[t]             = max(0,
                                         InvestmentExogenous[t]) # The max function is used to avoid negative values. 
     # 2.0
+    InvestmentFlow[t]             = DelayFixed(max(0,RequiredCSNetInvestment[t] + DepreciationFlow[t]),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t])
+
     # 3.0 etc. 
     
 
