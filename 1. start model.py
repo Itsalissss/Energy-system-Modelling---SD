@@ -8,6 +8,9 @@ lengthTimeStep      = 0.25
 timeSteps           = np.arange(initialTime,finalTime+lengthTimeStep,lengthTimeStep)
 
 #%% Vensim Functions 
+DepreciationFlow = CapitalStock*DepreciationCS
+InvestmentFlow = MAX(0, InvestmentExogenous)
+InvestmentExogenous = PulseSize*PulseTrain(10, 0, PulseInterval, 300)
 
 
 def PulseTrain(current,start,steps,end):
