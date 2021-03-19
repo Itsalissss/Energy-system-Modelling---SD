@@ -80,8 +80,8 @@ def CheckDifferentValue(value1, value2):
 
 """Stocks"""
 # 1.0 Initial 
-CapitalStock                        = np.zeros(len(timeSteps))*np.nan
-CapitalStock[0]                     = 100 # for stock you will need to define the initial value
+CapitalStock = np.zeros(len(timeSteps))*np.nan
+CapitalStock[0] = 100 # for stock you will need to define the initial value
 # 2.0 
 # 3.1
 # 3.2
@@ -115,13 +115,13 @@ InvestmentFlow                      = np.zeros(len(timeSteps))*np.nan
 
 """Constants"""
 # 1.0 Initial
-DepreciationCS                      = 0.1
-PulseSize                           = 5
-PulseInterval                       = 5
+DepreciationCS = 0.1
+PulseSize = 5
+PulseInterval = 5
 # 2.0 
-LinearDemandGrowthforP              = 0
-OKR                                 = 1
-DelayPeriod                         = 0.25
+LinearDemandGrowthforP = 0
+OKR = 1
+DelayPeriod = 0.25
 # 3.1
 # 3.2
 # 3.3 etc.
@@ -135,7 +135,7 @@ for t in range(len(timeSteps)):
         
         """Stocks"""
         # 1.0 Initial
-        CapitalStock[t]           = CapitalStock[t-1]+(InvestmentFlow[t-1]-DepreciationFlow[t-1])*lengthTimeStep
+        CapitalStock[t] = CapitalStock[t-1]+(InvestmentFlow[t-1]-DepreciationFlow[t-1])*lengthTimeStep
         # 2.0
         # 3.0 etc
         # Add other Stocks here
@@ -143,21 +143,20 @@ for t in range(len(timeSteps)):
     
     """Variables"""
     # 1.0 Initial
-    InvestmentExogenous[t]        = PulseSize*PulseTrain(t,10,PulseInterval,300)
+    InvestmentExogenous[t] = PulseSize*PulseTrain(t,10,PulseInterval,300)
     # 2.0 
-    DesiredProductOutput[t]       = 105 + Ramp(t, LinearDemandGrowthforP, 10, 300)
-    ProductOutput[t]              = CapitalStock[t]*OKR 
-    RequiredCSNetInvestment[t]       = (DesiredProductOutput[t]-ProductOutput[t])/OKR
-    # 3.0 etc. 
+    DesiredProductOutput[t] = 105 + Ramp(t, LinearDemandGrowthforP, 10, 300)
+    ProductOutput[t] = CapitalStock[t]*OKR
+    RequiredCSNetInvestment[t] = (DesiredProductOutput[t]-ProductOutput[t])/OKR
+    # 3.0 etc.
     
     
     """Flow"""
     # 1.0 Initial
-    DepreciationFlow[t]           = CapitalStock[t]*DepreciationCS
-    InvestmentFlow[t]             = max(0,
-                                        InvestmentExogenous[t]) # The max function is used to avoid negative values. 
+    DepreciationFlow[t] = CapitalStock[t]*DepreciationCS
+    InvestmentFlow[t] = max(0, InvestmentExogenous[t]) # The max function is used to avoid negative values.
     # 2.0
-    InvestmentFlow[t]             = DelayFixed(max(0,RequiredCSNetInvestment[t] + DepreciationFlow[t]),DelayPeriod, RequiredCSNetInvestment[t] + DepreciationFlow[t])
+    InvestmentFlow[t] = DelayFixed(t, max(0, (RequiredCSNetInvestment[t] + DepreciationFlow[t])), DelayPeriod, (RequiredCSNetInvestment[t] + DepreciationFlow[t]))
 
     # 3.0 etc. 
     
