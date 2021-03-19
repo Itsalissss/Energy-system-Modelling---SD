@@ -23,7 +23,7 @@ def PulseTrain(current,start,steps,end):
         return 0
 
 def Ramp(current,growth,start,end):
-    """Write a description of this function here for personal documentation."""
+    """Returns 0 until the start time and then slopes upward until end time and then holds constant."""
     if((current*lengthTimeStep>start) & (current*lengthTimeStep<end)):
         return growth*((current*lengthTimeStep)-start)
     elif (current*lengthTimeStep<=start):
