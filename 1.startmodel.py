@@ -2,7 +2,7 @@ import pandas as pd # useful for importing and exporting data to excel
 import numpy as np  # useful for creating and editing (multidimensional) arrays
 
 #%% Model Parameters
-initialTime         = 10
+initialTime         = 0
 finalTime           = 100
 lengthTimeStep      = 0.25
 timeSteps           = np.arange(initialTime,finalTime+lengthTimeStep,lengthTimeStep)
