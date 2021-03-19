@@ -33,7 +33,9 @@ def Ramp(current,growth,start,end):
 
 delaylist = np.zeros(len(timeSteps))
 def DelayFixed(current,inp,delayTime,initialValue): 
-    """Returns 0 until the startTime and then slopes upward until endTime and then holds constant."""
+    """Returns the value of the input delayed by the delay time.
+    The initial value is the value of the variable on the left-hand side of the equation at the start of the simulation.
+    The delay time can be an expression, but only its initial value is used."""
     delaylist[current] = inp
     if current*lengthTimeStep<=delayTime:
         return initialValue
