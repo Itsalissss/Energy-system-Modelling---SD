@@ -96,6 +96,7 @@ DesiredProductOutput                = np.zeros(len(timeSteps))*np.nan
 ProductOutput                       = np.zeros(len(timeSteps))*np.nan
 RequiredCSNetInvestment             = np.zeros(len(timeSteps))*np.nan
 # 3.1
+PriceEnergy                         = np.zeros(len(timeSteps))*np.nan
 # 3.2
 # 3.3 etc.
 
@@ -123,6 +124,10 @@ LinearDemandGrowthforP = 0
 OKR = 1
 DelayPeriod = 0.25
 # 3.1
+OER = 1
+LinearENPriceIncrease = 0
+PriceCapital = 0.1
+
 # 3.2
 # 3.3 etc.
 
@@ -149,24 +154,25 @@ for t in range(len(timeSteps)):
     ProductOutput[t] = CapitalStock[t]*OKR
     RequiredCSNetInvestment[t] = (DesiredProductOutput[t]-ProductOutput[t])/OKR
     # 3.0 etc.
-    
+    PriceEnergy[t] = 0.1 + Ramp(t, LinearENPriceIncrease, 10, 300)
+    RefProductCost = (PriceCapital/OKR) + (PriceEnergy/OER)
     
     """Flow"""
     # 1.0 Initial
     DepreciationFlow[t] = CapitalStock[t]*DepreciationCS
     InvestmentFlow[t] = max(0, InvestmentExogenous[t]) # The max function is used to avoid negative values.
     # 2.0
-    InvestmentFlow[t] = DelayFixed(t, max(0, (RequiredCSNetInvestment[t] + DepreciationFlow[t])), DelayPeriod, (RequiredCSNetInvestment[t] + DepreciationFlow[t]))
-
+   
     # 3.0 etc. 
+    
     
 
 
 
 #%% Generate output
-data = [CapitalStock,InvestmentFlow,DepreciationFlow,DesiredProductOutput]
+data = [CapitalStock,InvestmentFlow,DepreciationFlow,DesiredProductOutput,RefProductCost]
 data = np.transpose(data)
-label = ['Capital Stock','InvestFlow','DepreciationFlow','DesiredProductOutput']
+label = ['Capital Stock','InvestFlow','DepreciationFlow','DesiredProductOutput','RefProductCost']
 out = pd.DataFrame(data,index=timeSteps,columns=label)
 
 
