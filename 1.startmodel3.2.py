@@ -196,7 +196,7 @@ out.to_excel('mdl1.xlsx')
 out.plot(lw = 2, kind='line', colormap='jet', subplots=True, grid=True, figsize=(5,8), xlim=[initialTime,finalTime], title='Results')
 
 # Only uncomment lines below when you want to check your results 
-CheckResults("3.2", ActProductPrice,CapitalStock,ProductOutput)
+#CheckResults("3.2", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("3.3", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("3.4", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("4", ActProductPrice,CapitalStock,ProductOutput)
