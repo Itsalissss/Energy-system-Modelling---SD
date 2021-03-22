@@ -72,7 +72,7 @@ def CheckResults(version,actProductPrice, capitalStock,productOutput):
 
      
 def CheckDifferentValue(value1, value2):
-    differenceThreshold = 0.00001
+    differenceThreshold = 0.001
     return abs(value1 - value2) >differenceThreshold
 
 #%% Input variables
@@ -161,22 +161,21 @@ for t in range(len(timeSteps)):
     # 2.0 
   
     ProductOutput[t] = CapitalStock[t]*OKR
-    RequiredCSNetInvestment[t] = (DesiredProductOutput[t]-ProductOutput[t])/OKR
     # 3.0 etc.
     PriceEnergy[t] = 0.1 + Ramp(t, LinearENPriceIncrease, 10, 300)
     RefProductCost[t]= (PriceCapital/OKR) + (PriceEnergy[t]/OER)
     # 3.2
-    ScalingMultiplier[t] = (CapitalStock[t]/RefSizeCS)**-ScalingFactor
+    ScalingMultiplier[t] = (CapitalStock[t]/RefSizeCS)**(-ScalingFactor)
     OverallCostMultiplier[t] = ScalingMultiplier[t]
     ActProductPrice[t]= 1.1 * RefProductCost[t]*OverallCostMultiplier[t]
     ProdDemMultiplier[t] = 1 + ProdPriceElasticity*((ActProductPrice[t]-InitialPriceP)/InitialPriceP)
     DesiredProductOutput[t] = (105 + Ramp(t, LinearDemandGrowthforP, 10, 300))*ProdDemMultiplier[t]
-    
+    RequiredCSNetInvestment[t] = (DesiredProductOutput[t]-ProductOutput[t])/OKR
     
     """Flow"""
     # 1.0 Initial
     DepreciationFlow[t] = CapitalStock[t]*DepreciationCS
-    InvestmentFlow[t] = max(0, InvestmentExogenous[t]) # The max function is used to avoid negative values.
+    InvestmentFlow[t] = max(0, (RequiredCSNetInvestment[t]+ DepreciationFlow[t])) # The max function is used to avoid negative values.
     # 2.0
    
     # 3.0 etc. 
