@@ -97,7 +97,7 @@ CumulativeUse                       = np.zeros(len(timeSteps))*np.nan
 CumulativeUse[0]                    = 20
 # 5 Biofuel
 BiomassProductionLand               = np.zeros(len(timeSteps))*np.nan
-BiomassProductionLand[0]            = InitialBiomassProductionLand 
+BiomassProductionLand[0]            = 1 #ha
 CumulatedBioConv                    = np.zeros(len(timeSteps))*np.nan
 CumulatedBioConv[0]                 = 10
 BiofuelConvCapital                  = np.zeros(len(timeSteps))*np.nan
@@ -269,7 +269,7 @@ for t in range(len(timeSteps)):
     CapEnSubstMultiplier[t]        = OptProductCost[t] /InitialProductCost
     ProductOutput[t]               = CapitalStock[t] *OptOKR[t]  # From 2.0
     
-    EnergyDemand[t]                = 
+    EnergyDemand[t]                = ProductOutput[t] /OptOER[t]
     OverallCostMultiplier[t]       = ScalingMultiplier[t]*LearningMultiplier[t]*CapEnSubstMultiplier[t]*EnergyCostMultiplier[t]
     ActProductPrice[t]             = 1.1 * InitialProductCost*OverallCostMultiplier[t]
     ProdDemMultiplier[t]           = 1 + ProdPriceElasticity*((ActProductPrice[t]-InitialPriceP)/InitialPriceP)
