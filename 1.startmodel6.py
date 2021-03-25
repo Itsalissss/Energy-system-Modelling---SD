@@ -254,66 +254,70 @@ for t in range(len(timeSteps)):
     """Variables"""
     # 1.0 Initial
     InvestmentExogenous[t] = PulseSize*PulseTrain(t,10,PulseInterval,300)
-    ScalingMultiplier[t] = (CapitalStock[t]/RefSizeCS)**(-ScalingFactor)
-    #3.3
-    LearningMultiplier[t]= CumulativeProduction[t]**(-LearnCoefficient)
-    
-    #4.0 Fossil Fuels
-    DepletionCostMultiplier[t]     = LookUp(CumulativeUse[t]/InitialUltOilReserves, [fossilin, fossilout])
-    PriceOfOil[t]                  = 0.1*DepletionCostMultiplier[t]
-   
+    ScalingMultiplier[t]            = (CapitalStock[t]/RefSizeCS)**(-ScalingFactor)
+    # 6 Market Substitution
+    BioConvLearningMultiplier[t]      = CumulatedBioConv[t]**(LearnCoeffBio)
+    Yield[t]                          = LookUp(BiomassProductionLand[t]/MaxLandAvailable,[biolandin, biolandout])
+    BiomassProduction[t]              = Yield[t]*BiomassProductionLand[t]
+    BioConvOKR[t]                     = BioConvOKRNom*BioConvLearningMultiplier[t]
+    BioConvCost[t]                    = PriceOfCapital/BioConvOKR[t]
+    BiofuelProduction[t]              = max(0,BiofuelConvCapital[t]*BioConvOKR[t])
+    DemandForBiomass[t]               = BiofuelProduction[t]/BiomassToBiofuelConvEff
+    BiomassCost[t]                    = LandPrice/Yield[t]/BioConvEff
+    DepletionCostMultiplier[t]        = LookUp(CumulativeUse[t]/InitialUltOilReserves,[fossilin, fossilout])
+    PriceOfOil[t]                     = 0.1*DepletionCostMultiplier[t]  #was 0.0227*DepletionCostMultiplier[t]
+    CostOfBiofuel[t]                  = BioConvCost[t]+BiomassCost[t]
+    BioFactor[t]                      = np.exp(-Lambda*CostOfBiofuel[t])
+    OilFactor[t]                      = np.exp(-Lambda*PriceOfOil[t])
+    MarketShareOil[t]                 = OilFactor[t]/(OilFactor[t]+BioFactor[t])
+    MarketShareBiomass[t]             = BioFactor[t]/(OilFactor[t]+BioFactor[t])
+    PriceEnergy[t]                    = (np.log(BioFactor[t]+OilFactor[t])-np.log(2))/-Lambda 
     # 5 Biofuel
-    BioConvLearningMultiplier[t]   = CumulatedBioConv[t]**(LearnCoeffBio)
-    Yield[t]                       = LookUp(BiomassProductionLand[t]/MaxLandAvailable,[biolandin, biolandout])
-    BiomassProduction[t]           = Yield[t]*BiomassProductionLand[t]
-    BioConvOKR[t]                  = BioConvOKRNom*BioConvLearningMultiplier[t]
-    BioConvCost[t]                 = PriceOfCapital/BioConvOKR[t]
-    BiofuelProduction[t]           = max(0,BiofuelConvCapital[t]*BioConvOKR[t])
-    DemandForBiomass[t]            = BiofuelProduction[t]/BiomassToBiofuelConvEff
-    BiomassCost[t]                 = LandPrice/(Yield[t]*BioConvEff)
-    CostOfBiofuel[t]               = BioConvCost[t]+BiomassCost[t]
-    #6.0 Market substitution
-    BioFactor[t]                   = np.exp(-Lambda*CostOfBiofuel[t])
-    OilFactor[t]                   = np.exp(-Lambda*PriceOfOil[t])
-    MarketShareOil[t]              = OilFactor[t]/(OilFactor[t]+BioFactor[t])
-    MarketShareBiomass[t]          = BioFactor[t]/(OilFactor[t]+BioFactor[t])
-    DemandForBiofuel[t]            = MarketShareBiomass[t]*EnergyDemand[t]
-    RequiredInvestment[t]          = (DemandForBiofuel[t]-BiofuelProduction[t])/BioConvOKR[t]
-    PriceEnergy[t]                 = (np.log(BioFactor[t]+OilFactor[t])-np.log(2))/-Lambda
-    OptEnergyUse[t]                = (PriceEnergy[t] /InitialPriceOfEnergy)**(-Alpha)*InitialOptEnergyUse
-    OptCapitalStock[t]             = (Alpha/(1-Alpha))*(PriceEnergy[t] /PriceOfCapital)*OptEnergyUse[t] 
-    OptOER[t]                      = RefSizeCS/OptEnergyUse[t] 
-    OptOKR[t]                      = RefSizeCS/OptCapitalStock[t] 
-    RefProductCost[t]              = PriceOfCapital/InitialOKR + PriceEnergy[t] /InitialOER # Adapted from 3.1
-    OptProductCost[t]              = PriceOfCapital/OptOKR[t]  + PriceEnergy[t] /OptOER[t] 
-    EnergyCostMultiplier[t]        = RefProductCost[t]/InitialProductCost
-    CapEnSubstMultiplier[t]        = OptProductCost[t] /InitialProductCost
-    ProductOutput[t]               = CapitalStock[t] *OptOKR[t]  # From 2.0
-    ProductionIn[t]                = ProductOutput[t]
-    EnergyDemand[t]                = ProductOutput[t] /OptOER[t]
-    OverallCostMultiplier[t]       = ScalingMultiplier[t]*LearningMultiplier[t]*CapEnSubstMultiplier[t]*EnergyCostMultiplier[t]
-    ActProductPrice[t]             = 1.1 * InitialProductCost*OverallCostMultiplier[t]
-    ProdDemMultiplier[t]           = 1 + ProdPriceElasticity*((ActProductPrice[t]-InitialPriceP)/InitialPriceP)
-    DesiredProductOutput[t]        = (105 + Ramp(t, LinearDemandGrowthforP, 10, 300))*ProdDemMultiplier[t]
-    RequiredCSNetInvestment[t]     = (DesiredProductOutput[t]-ProductOutput[t])/OptOKR[t]
+    
+    # 4 Fossil fuel 
+    
+    # 3.4 Production economics: substitution
+    OptEnergyUse[t]                 = (PriceEnergy[t]/InitialPriceOfEnergy)**(-Alpha)*InitialOptEnergyUse
+    OptCapitalStock[t]              = (Alpha/(1-Alpha))*(PriceEnergy[t]/PriceOfCapital)*OptEnergyUse[t]
+    OptOER[t]                       = RefSizeCS/OptEnergyUse[t]
+    OptOKR[t]                       = RefSizeCS/OptCapitalStock[t]
+    RefProductCost[t]               = PriceOfCapital/InitialOKR + PriceEnergy[t]/InitialOER # Adapted from 3.1
+    OptProductCost[t]               = PriceOfCapital/OptOKR[t] + PriceEnergy[t]/OptOER[t]
+    EnergyCostMultiplier[t]         = RefProductCost[t]/InitialProductCost
+    CapEnSubstMultiplier[t]         = OptProductCost[t]/InitialProductCost
+    ProductOutput[t]                = CapitalStock[t]*OptOKR[t] # From 2.0
+    ProductionIn[t]                 = ProductOutput[t]  
+    EnergyDemand[t]                 = ProductOutput[t]/OptOER[t]
+    
+   # 5 Biofuel (continued)
+    DemandForBiofuel[t]             = MarketShareBiomass[t]*EnergyDemand[t]
+    RequiredInvestment[t]           = (DemandForBiofuel[t]-BiofuelProduction[t])/BioConvOKR[t]
+    
+    #3.2
+    
+    
+
+    #3.3
+    LearningMultiplier[t]           = CumulativeProduction[t]**-LearnCoefficient
+    OverallCostMultiplier[t]        = ScalingMultiplier[t]*LearningMultiplier[t]*CapEnSubstMultiplier[t]*EnergyCostMultiplier[t] #NOT WRONG
+    ActProductPrice[t]              = 1.1*InitialProductCost*OverallCostMultiplier[t]
+    ProdDemMultiplier[t]            = 1+ProdPriceElasticity*((ActProductPrice[t]-InitialPrice)/InitialPrice)
+    DesiredProductOutput[t]         = (105 + Ramp(t,LinearDemandGrowthforP,10,300))*ProdDemMultiplier[t]  
+    RequiredCSNetInvestment[t]      = (DesiredProductOutput[t]-ProductOutput[t])/OptOKR[t]
     
     """Flow"""
     # 1.0 Initial
-    DepreciationFlow[t] = CapitalStock[t]*DepreciationCS
-    InvestmentFlow[t] = max(0, (RequiredCSNetInvestment[t]+ DepreciationFlow[t])) # The max function is used to avoid negative values.
-    # 2.0
-    # 3.0 etc. 
+    DepreciationFlow[t]             = CapitalStock[t]*DepreciationCS
+    InvestmentFlow[t]               = max(0,(RequiredCSNetInvestment[t])+DepreciationFlow[t])
     # 4 Fossil fuel 
-    ProductionRate[t]             = min(MaxProdRateAsFrac*OilProductionReserves[t],MarketShareOil[t]*EnergyDemand[t])
-    DiscoveryRate[t]              = DiscoveryRateFraction*UltOilReserves[t]
-    # 5 Biofuel
-    BioConvDepreciation[t]        = BiofuelConvCapital[t]/AverageBioConvLifetime
-    BioConvInvestment[t]          = RequiredInvestment[t]+BioConvDepreciation[t]
-    BioConvIn[t]                  = BiofuelProduction[t]
-    LandChangeRequired[t]         = (BiomassProduction[t] - DemandForBiomass[t])/Yield[t]
+    ProductionRate[t]               = min(MaxProdRateAsFrac*OilProductionReserves[t],MarketShareOil[t]*EnergyDemand[t])
+    DiscoveryRate[t]                = DiscoveryRateFraction*UltOilReserves[t]
+    #5 Biofuel
+    BioConvDepreciation[t]          = BiofuelConvCapital[t]/AverageBioConvLifetime
+    BioConvInvestment[t]            = RequiredInvestment[t]+BioConvDepreciation[t]
+    BioConvIn[t]                    = BiofuelProduction[t]
+    LandChangeRequired[t]           = (BiomassProduction[t]-DemandForBiomass[t])/Yield[t]
     
-
-
 
 #%% Generate output
 data = [CapitalStock,InvestmentFlow,DepreciationFlow,DesiredProductOutput,RefProductCost]
