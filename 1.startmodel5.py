@@ -40,16 +40,16 @@ def DelayFixed(current,inp,delayTime,initialValue):
     else:
         return delaylist[int(current-(delayTime/lengthTimeStep))]
     
-def LookUp(val,lookupin,lookupout):
+def LookUp(val,lookup):
     """Write a description of this function here for personal documentation."""
-    lookupin = fossilin 
-    lookupout = fossilout
+    lookupin = lookup[0] 
+    lookupout = lookup[1]
     return np.interp(val,lookupin,lookupout)
 
 
 ## Help functions to chech your results only needed from model 3.2 onwards
 def CheckResults(version,actProductPrice, capitalStock,productOutput):
-    df = pd.read_excel('SD Assignment Check Results 2019.xlsx', sheet_name='Check values')
+    df = pd.read_excel('SD Assignment Check Results 2021.xlsx', sheet_name='Check values')
     columnName = [col for col in df if col.startswith(version)][0]
     columnNumber = df.columns.get_loc(columnName)
     rows = df.iloc[1:101,columnNumber:columnNumber+3].values
@@ -214,7 +214,7 @@ MaxLandAvailable                    = 10000
 BioConvEff                          = 0.38
 MarketShareBiomass                  = 0.5
 InitialBiomassProductionLand        = BiomassProductionLand[0]  
-InitialEnergyDemand                 = 10
+
 #Add new help arrays
 biolandin                           = np.arange(0,1.1,0.1)
 biolandout                          = np.asarray([0.4,0.4,0.398,0.39,0.382,0.374,0.364,0.356,0.348,0.366,0.322])
@@ -256,7 +256,7 @@ for t in range(len(timeSteps)):
     ProductionIn[t]                = ProductOutput[t]
     #3.4 Production economics: substitution
     #4.0 Fossil Fuels
-    DepletionCostMultiplier[t]     = LookUp(CumulativeUse[t]/InitialUltOilReserves, fossilin, fossilout)
+    DepletionCostMultiplier[t]     = LookUp(CumulativeUse[t]/InitialUltOilReserves, [fossilin, fossilout])
     PriceOfOil[t]                  = 0.0227*DepletionCostMultiplier[t]
     PriceEnergy[t]                 = PriceOfOil[t]
     OptEnergyUse[t]                = (PriceEnergy[t] /InitialPriceOfEnergy)**(-Alpha)*InitialOptEnergyUse
@@ -277,13 +277,13 @@ for t in range(len(timeSteps)):
     RequiredCSNetInvestment[t]     = (DesiredProductOutput[t]-ProductOutput[t])/OptOKR[t]
     # 5 Biofuel
     BioConvLearningMultiplier[t]   = CumulatedBioConv[t]**(LearnCoeffBio)
-    Yield[t]                       = LookUp(BiomassProductionLand[t]/MaxLandAvailable,biolandin, biolandout)
+    Yield[t]                       = LookUp(BiomassProductionLand[t]/MaxLandAvailable,[biolandin, biolandout])
     BiomassProduction[t]           = Yield[t]*BiomassProductionLand[t]
     BioConvOKR[t]                  = BioConvOKRNom*BioConvLearningMultiplier[t]
     BioConvCost[t]                 = PriceOfCapital/BioConvOKR[t]
     BiofuelProduction[t]           = max(0,BiofuelConvCapital[t]*BioConvOKR[t])
     DemandForBiomass[t]            = BiofuelProduction[t]/BiomassToBiofuelConvEff
-    BiomassCost[t]                 = LandPrice/Yield[t]
+    BiomassCost[t]                 = LandPrice/(Yield[t]*BioConvEff)
     CostOfBiofuel[t]               = BioConvCost[t]+BiomassCost[t]
     # 5 Biofuel (continued)
     DemandForBiofuel[t]            = MarketShareBiomass*EnergyDemand[t]
@@ -302,7 +302,7 @@ for t in range(len(timeSteps)):
     BioConvDepreciation[t]        = BiofuelConvCapital[t]/AverageBioConvLifetime
     BioConvInvestment[t]          = RequiredInvestment[t]+BioConvDepreciation[t]
     BioConvIn[t]                  = BiofuelProduction[t]
-    LandChangeRequired[t]         = DemandForBiomass[t]/Yield[t]
+    LandChangeRequired[t]         = (BiomassProduction[t] - DemandForBiomass[t])/Yield[t]
     
 
 
@@ -322,6 +322,6 @@ out.plot(lw = 2, kind='line', colormap='jet', subplots=True, grid=True, figsize=
 #CheckResults("3.3", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("3.4", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("4", ActProductPrice,CapitalStock,ProductOutput)
-#CheckResults("5", ActProductPrice,CapitalStock,ProductOutput)
+CheckResults("5", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("6", ActProductPrice,CapitalStock,ProductOutput)
 #CheckResults("7", ActProductPrice,CapitalStock,ProductOutput)
